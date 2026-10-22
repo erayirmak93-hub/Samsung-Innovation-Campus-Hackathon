@@ -247,7 +247,7 @@ const TYPES = ["technical","tool","soft","knowledge","experience"];
 function buildPrompt(story, field, ad, lang){
 return `You are a career guide for young people with little or no formal work experience. Many of them believe they "have nothing to put on a CV". Your job is to show them, honestly, what they already have, what their target field needs, and the next concrete steps.
 
-Write all explanations in ${lang}. Keep sentences short and simple: the reader may be 17-24 and reading on a phone. Quote fields stay in the original language, copied exactly.
+Write all explanations in ${lang}. Keep sentences short and simple: the reader may be 17-24 and reading on a phone. Address the reader directly and informally (in Turkish use "sen", never "siz"). Quote fields stay in the original language, copied exactly.
 
 FIRST THINK STEP BY STEP in "reasoning" (3-5 sentences): what has this person actually done, which of those are real skills employers value, what the target field${ad?" and the ad":""} require${ad?"":"s"}, and where the biggest gap is.
 
@@ -422,8 +422,8 @@ async function analyse(story, field, ad, lang, signal){
   }
   throw {code:"no_model"};
 }
-const ERRS = { en:{ no_model:"noModel", rate_limited:"Too many requests. Wait a minute and try again.", too_long:"Your text is too long. Shorten it a little.", invalid_json:"The answer came back in the wrong format. Try again.", not_granted:"This page was not allowed to use Claude.", cancelled:"Stopped." },
-               tr:{ no_model:"noModel", rate_limited:"Çok fazla istek. Bir dakika bekleyip tekrar dene.", too_long:"Metin çok uzun. Biraz kısalt.", invalid_json:"Cevap yanlış biçimde geldi. Tekrar dene.", not_granted:"Bu sayfanın Claude kullanmasına izin verilmedi.", cancelled:"Durduruldu." } };
+const ERRS = { en:{ no_model:"noModel", rate_limited:"Too many requests. Wait a minute and try again.", busy:"The AI service is busy right now. Wait a minute and try again.", too_long:"Your text is too long. Shorten it a little.", invalid_json:"The answer came back in the wrong format. Try again.", not_granted:"This page was not allowed to use Claude.", cancelled:"Stopped." },
+               tr:{ no_model:"noModel", rate_limited:"Çok fazla istek. Bir dakika bekleyip tekrar dene.", busy:"Yapay zekâ servisi şu an çok yoğun. Bir dakika bekleyip tekrar dene.", too_long:"Metin çok uzun. Biraz kısalt.", invalid_json:"Cevap yanlış biçimde geldi. Tekrar dene.", not_granted:"Bu sayfanın Claude kullanmasına izin verilmedi.", cancelled:"Durduruldu." } };
 function errMsg(e){ const m = ERRS[L][e?.code]; if(m === "noModel") return t("noModel"); return m || (L==="tr" ? "Bir sorun oldu. Tekrar dene." : "Something went wrong. Try again."); }
 
 $("stop").onclick = () => ctl?.abort();
