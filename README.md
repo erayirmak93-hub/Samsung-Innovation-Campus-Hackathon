@@ -7,7 +7,7 @@ A generative-AI career guide for young people with little or no formal work expe
 3. **A 3-stage roadmap** (next 2 weeks, 1–3 months, 3–6 months)
 4. **Honest CV lines and a STAR interview story**, built only from facts in their story
 
-**SDG link:** 8.6 (reduce the share of youth not in employment, education or training), 4.4 (increase the number of youth with skills relevant for employment).
+**SDG link:** SDG 8, Decent work (target 8.6: reduce the share of youth not in employment, education or training) and SDG 4, Quality education (target 4.4: more youth with skills relevant for employment).
 **Target users:** young people who think they have "nothing to put on a CV", for example vocational-school graduates, NEET youth, and students without internships.
 
 ## What makes it different: no inflated CVs
