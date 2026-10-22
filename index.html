@@ -1,0 +1,454 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Skill Compass</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column, phone first. Step 1 your story, step 2 your goal, then a short map; details fold away */
+:root{
+  --bg:#F3F5F4; --panel:#FFFFFF; --ink:#132026; --muted:#56656C; --line:#D5DDDB;
+  --accent:#0E7A6B; --accent-ink:#FFFFFF; --accent-soft:#DDF1EC;
+  --have:#1C7447; --have-bg:#E1F3E8; --part:#975C00; --part-bg:#FFF0D4; --miss:#4A5A63; --miss-bg:#ECEFF1; --bad:#B42318; --bad-bg:#FDE6E3;
+  --mark:#FFE7A3;
+  --f-disp:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-ui:"Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1517; --panel:#172024; --ink:#E5EDEB; --muted:#98A8AE; --line:#2B373B;
+  --accent:#4FD1B9; --accent-ink:#06201B; --accent-soft:#143A33;
+  --have:#5DD49A; --have-bg:#123023; --part:#F2B65A; --part-bg:#3A2A10; --miss:#B4C2C8; --miss-bg:#232E33; --bad:#FF8A7E; --bad-bg:#3E1714;
+  --mark:#4F4413; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1517; --panel:#172024; --ink:#E5EDEB; --muted:#98A8AE; --line:#2B373B;
+  --accent:#4FD1B9; --accent-ink:#06201B; --accent-soft:#143A33;
+  --have:#5DD49A; --have-bg:#123023; --part:#F2B65A; --part-bg:#3A2A10; --miss:#B4C2C8; --miss-bg:#232E33; --bad:#FF8A7E; --bad-bg:#3E1714;
+  --mark:#4F4413; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:16px;line-height:1.55}
+.wrap{max-width:720px;margin:0 auto;padding-block:18px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{display:flex;gap:10px;align-items:center}
+.brand svg{width:36px;height:36px;flex:none}
+h1{font-family:var(--f-disp);font-weight:800;font-size:1.6rem;line-height:1;margin:0;letter-spacing:-.02em}
+.langs{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.langs button{background:none;border:0;padding:4px 12px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted)}
+.langs button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.step{font-size:.8rem;font-weight:700;color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+h2{font-family:var(--f-disp);font-weight:600;font-size:1.35rem;line-height:1.25;margin:0;text-wrap:balance}
+.help{margin:0;color:var(--muted);font-size:.92rem}
+textarea,input[type=text],input[type=password]{border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:12px;width:100%;min-width:0;line-height:1.5}
+#story{min-height:150px;resize:vertical}
+#ad{min-height:110px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.88rem;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:13px 22px;font-weight:700;font-size:1.02rem;cursor:pointer}
+.btn:disabled{opacity:.55;cursor:progress}
+.link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.count{font-size:.8rem;color:var(--muted);margin-left:auto}
+details.opt{border-top:1px solid var(--line);padding-top:10px}
+details.opt > summary{cursor:pointer;font-weight:600}
+details.opt > div{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.status{font-size:.92rem;color:var(--muted);min-height:1.3em}
+.status.err{color:var(--bad)}
+.thinking{display:flex;gap:10px;align-items:center;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.1s infinite ease-in-out}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+
+/* result */
+.lead{font-family:var(--f-disp);font-weight:600;font-size:1.3rem;line-height:1.3;margin:0;text-wrap:balance}
+.trust{font-size:.82rem;color:var(--have);font-weight:600}
+.trust.warn{color:var(--part)}
+.tops{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.top{background:var(--accent-soft);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.top b{font-size:1rem}
+.top q{font-size:.85rem;color:var(--muted)}
+.top.bad{background:var(--bad-bg)}
+h3{font-family:var(--f-disp);font-weight:600;font-size:1.1rem;margin:0}
+.needs{display:flex;flex-direction:column}
+.need{border-top:1px solid var(--line)}
+.need summary{list-style:none;display:grid;grid-template-columns:1.6em minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;cursor:pointer}
+.need summary::-webkit-details-marker{display:none}
+.ico{width:1.4em;height:1.4em;border-radius:50%;display:grid;place-items:center;font-size:.8rem;font-weight:800}
+.ico.have{background:var(--have-bg);color:var(--have)} .ico.partial{background:var(--part-bg);color:var(--part)} .ico.missing{background:var(--miss-bg);color:var(--miss)} .ico.unverified{background:var(--bad-bg);color:var(--bad)}
+.tg{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.need .more{padding:0 0 12px 2.6em;display:flex;flex-direction:column;gap:4px;font-size:.9rem}
+.need .more .next{font-weight:600}
+.src{color:var(--muted);font-size:.84rem}
+.chk{font-size:.72rem;font-weight:700;border-radius:4px;padding:0 6px;margin-right:6px;white-space:nowrap}
+.chk.ok{background:var(--have-bg);color:var(--have)} .chk.bad{background:var(--bad-bg);color:var(--bad)} .chk.gen{background:var(--miss-bg);color:var(--miss)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;gap:5px;align-items:center}
+.now{border:2px solid var(--accent);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:4px}
+.now .when{font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+.now b{font-size:1.05rem}
+.later{display:flex;flex-direction:column;gap:6px;font-size:.9rem;color:var(--muted)}
+.fold{border-top:1px solid var(--line);padding-top:10px}
+.fold > summary{cursor:pointer;font-weight:700;font-family:var(--f-disp);font-size:1.05rem}
+.fold > div{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.cv{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.cv li{border-left:3px solid var(--accent);padding:2px 0 2px 10px}
+.cv li.bad{border-color:var(--bad)}
+.warnline{font-size:.82rem;color:var(--bad);font-weight:600}
+.star{display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:6px 10px;margin:0}
+.star dt{font-weight:700;color:var(--accent)} .star dd{margin:0}
+.qs{margin:0;padding-left:1.2em}
+.storyview{white-space:pre-wrap;font-size:.9rem;background:var(--bg);border-radius:10px;padding:10px 12px}
+.storyview mark{background:var(--mark);color:inherit;border-radius:2px}
+.foot{font-size:.8rem;color:var(--muted);margin:0}
+.keybox{display:flex;flex-direction:column;gap:6px;font-size:.86rem;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" fill="none" stroke="var(--ink)" stroke-width="2.5"/><path d="M22 7 27 22 22 37 17 22Z" fill="var(--accent)"/><path d="M22 22 27 22 22 37 17 22Z" fill="var(--ink)" opacity=".85"/><circle cx="22" cy="22" r="2.4" fill="var(--panel)"/></svg>
+      <h1>Skill Compass</h1>
+    </div>
+    <div class="langs" role="group" aria-label="Language"><button data-l="en" aria-pressed="true">EN</button><button data-l="tr" aria-pressed="false">TR</button></div>
+  </header>
+
+  <!-- FORM -->
+  <form id="form" class="card" novalidate>
+    <span class="step" data-t="step1"></span>
+    <h2 data-t="q1" id="q1lbl"></h2>
+    <p class="help" data-t="q1help"></p>
+    <div class="chips" id="starters"></div>
+    <textarea id="story" lang="tr" aria-labelledby="q1lbl"></textarea>
+    <div class="row"><button type="button" class="link" id="loadSample" data-t="example"></button><span class="count" id="count"></span></div>
+
+    <span class="step" data-t="step2" style="margin-top:8px"></span>
+    <h2 data-t="q2"></h2>
+    <input type="text" id="field" autocomplete="off">
+    <div class="chips" id="fields"></div>
+    <details class="opt"><summary data-t="adq"></summary><div><p class="help" data-t="adhelp"></p><textarea id="ad" lang="tr" aria-label="Job ad"></textarea></div></details>
+
+    <div class="row" style="margin-top:4px"><button class="btn" id="run" type="submit" data-t="go"></button><button type="button" class="link" id="stop" hidden data-t="stop"></button></div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <details class="opt" id="keyopt" hidden><summary data-t="keyq"></summary><div class="keybox"><span data-t="keyhelp"></span>
+      <input id="apikey" type="password" autocomplete="off" placeholder="sk-ant-..." aria-label="API key"><input id="model" type="text" value="claude-sonnet-5-5" aria-label="Model"></div></details>
+  </form>
+
+  <!-- RESULT -->
+  <div id="result" hidden></div>
+</div>
+
+<script>
+/* ===== UI text ===== */
+const T = {
+ en:{ step1:"Step 1 of 2", q1:"What have you done so far?", q1help:"School, a part-time job, helping family, volunteering, hobbies. Write it like you would say it. A few sentences is enough. No names or addresses needed.",
+   starters:["At school I…","I worked at…","I help my family with…","In my free time I…","I'm proud that I…"],
+   example:"See an example", chars:n=>`${n} characters`, step2:"Step 2 of 2", q2:"What would you like to do?", fieldPh:"e.g. data analyst, graphic design, nursing",
+   fields:["Data analyst","Software developer","Graphic design","Sales & marketing","Logistics","Not sure yet"], adq:"Have a job ad you like? (optional)",
+   adhelp:"Paste it here. Then the requirements come straight from the ad and are checked against it.", go:"Show my map", stop:"Stop",
+   keyq:"Running this file on your own computer?", keyhelp:"This copy is not connected to the server. Enter an Anthropic API key (kept only in this tab).",
+   short:"Write a little more: 2–3 sentences about what you have done.", thinking:"Reading your story… this takes about 20–40 seconds.",
+   noModel:"Not connected. Open the online version, or enter an API key below.", edit:"← Change my answers",
+   top3:"Your strongest skills", yourWords:"From your own words", needsFor:f=>`What ${f} needs`, needsGeneral:"General guidance from the model. Compare with real job ads.",
+   needsAd:"Taken from the ad you pasted.", lg:{have:"You have it",partial:"Partly",missing:"To build",unverified:"Unverified"},
+   types:{technical:"Technical",tool:"Tool / software",soft:"Soft skill",knowledge:"Knowledge",experience:"Experience"},
+   inAd:"✓ in the ad", notInAd:"! not in the ad", general:"general", youSaid:"✓ you said", notSaid:"! not in your story", next:"Next step:",
+   startNow:"Start this", later:"After that", cvT:"CV lines from your story", copy:"Copy CV lines", copied:"Copied.", copyFail:"Copy is blocked here; select the lines manually.",
+   starT:"An interview story you can tell", stronger:"Make your profile stronger", strongerHelp:"Answer these in your story and run it again.",
+   storyT:"See your story with the evidence highlighted", how:"How did it reach this?", allSkills:"See all skills",
+   trustOk:n=>`All ${n} skills come from your own words. Nothing was invented.`, trustWarn:(a,b)=>`${a} of ${b} skills are backed by your words. The red ones were not; ignore them.`,
+   numWarn:n=>`This number is not in your story: ${n}. Remove it or add the fact to your story.`,
+   example2:"Example: a fictional person and a fictional ad. The output was written by the team, not a live run.",
+   foot:"Guidance, not a guarantee. This site does not store what you write, but it is sent to an AI service: leave out your name, ID number and address.", whenLbl:{0:"Next 2 weeks",1:"1–3 months",2:"3–6 months"} },
+ tr:{ step1:"Adım 1 / 2", q1:"Şimdiye kadar neler yaptın?", q1help:"Okul, yarı zamanlı iş, aileye yardım, gönüllülük, hobiler. Konuşur gibi yaz. Birkaç cümle yeter. İsim ya da adres yazmana gerek yok.",
+   starters:["Okulda…","Şurada çalıştım…","Ailemize şu konuda yardım ediyorum…","Boş zamanımda…","Gurur duyduğum bir şey…"],
+   example:"Örnek gör", chars:n=>`${n} karakter`, step2:"Adım 2 / 2", q2:"Ne yapmak istiyorsun?", fieldPh:"örn. veri analisti, grafik tasarım, hemşirelik",
+   fields:["Veri analisti","Yazılım geliştirici","Grafik tasarım","Satış ve pazarlama","Lojistik","Henüz emin değilim"], adq:"Beğendiğin bir iş ilanı var mı? (isteğe bağlı)",
+   adhelp:"Buraya yapıştır. O zaman gereksinimler doğrudan ilandan alınır ve ilanla karşılaştırılarak kontrol edilir.", go:"Haritamı göster", stop:"Durdur",
+   keyq:"Bu dosyayı kendi bilgisayarında mı açtın?", keyhelp:"Bu kopya sunucuya bağlı değil. Bir Anthropic API anahtarı gir (yalnızca bu sekmede tutulur).",
+   short:"Biraz daha yaz: ne yaptığına dair 2–3 cümle.", thinking:"Hikâyen okunuyor… yaklaşık 20–40 saniye sürer.",
+   noModel:"Bağlantı yok. Çevrimiçi sürümü aç ya da aşağıya bir API anahtarı gir.", edit:"← Cevaplarımı değiştir",
+   top3:"En güçlü becerilerin", yourWords:"Kendi sözlerinden", needsFor:f=>`${f} için gerekenler`, needsGeneral:"Modelin genel önerisi. Gerçek iş ilanlarıyla karşılaştır.",
+   needsAd:"Yapıştırdığın ilandan alındı.", lg:{have:"Sende var",partial:"Kısmen",missing:"Geliştirilecek",unverified:"Doğrulanmadı"},
+   types:{technical:"Teknik",tool:"Araç / yazılım",soft:"Soft skill",knowledge:"Bilgi",experience:"Deneyim"},
+   inAd:"✓ ilanda var", notInAd:"! ilanda yok", general:"genel", youSaid:"✓ sen söyledin", notSaid:"! hikâyende yok", next:"Sonraki adım:",
+   startNow:"Buradan başla", later:"Sonra", cvT:"Hikâyenden CV satırları", copy:"CV satırlarını kopyala", copied:"Kopyalandı.", copyFail:"Kopyalama burada engelli; satırları elle seç.",
+   starT:"Mülakatta anlatabileceğin bir hikâye", stronger:"Profilini güçlendir", strongerHelp:"Bunların cevabını hikâyene ekle ve tekrar çalıştır.",
+   storyT:"Hikâyeni kanıtlar işaretli olarak gör", how:"Bu sonuca nasıl vardı?", allSkills:"Tüm becerileri gör",
+   trustOk:n=>`${n} becerinin hepsi kendi sözlerinden geliyor. Hiçbir şey uydurulmadı.`, trustWarn:(a,b)=>`${b} becerinin ${a} tanesi senin sözlerinle destekleniyor. Kırmızı olanlar desteklenmiyor; onları dikkate alma.`,
+   numWarn:n=>`Bu sayı hikâyende geçmiyor: ${n}. Sil ya da hikâyene ekle.`,
+   example2:"Örnek: kurgusal bir kişi ve kurgusal bir ilan. Çıktıyı takım yazdı, canlı çalıştırma değil (örnek çıktı İngilizce).",
+   foot:"Yol gösterir, garanti vermez. Bu site yazdıklarını saklamaz ama metin bir yapay zekâ servisine gönderilir: adını, kimlik numaranı ve adresini yazma.", whenLbl:{0:"Önümüzdeki 2 hafta",1:"1–3 ay",2:"3–6 ay"} }
+};
+let L = "en";
+try{ const s = localStorage.getItem("sc-lang"); if(s==="tr"||s==="en") L = s; }catch{}
+const t = k => T[L][k];
+
+/* ===== Example (fictional) ===== */
+const SAMPLE = {
+  story:`Liseyi muhasebe bölümünden bitirdim. 2 yıldır dayımın hırdavat dükkânında çalışıyorum. Önceden stok defterde tutuluyordu, ben Excel'e geçirdim ve her ay hangi ürünün az sattığını gösteren bir tablo yapıyorum. Dayım bu tabloya bakıp sipariş veriyor. Müşteriler bazen sinirli geliyor, onlarla konuşup sorunu çözmeye çalışıyorum. Kardeşime haftada 3 gün matematik dersi veriyorum, notları 45'ten 70'e çıktı. Okulda e-spor takımımızın kaptanıydım, antrenman programını ben ayarlıyordum. Veri analisti olmak istiyorum ama üniversite okumadım ve nereden başlayacağımı bilmiyorum.`,
+  field:"Data analyst",
+  ad:`Junior Veri Analisti – Örnek Perakende A.Ş. (İstanbul, hibrit)
+Aranan nitelikler:
+- Excel'de pivot tablo ve formüllerle rahat çalışabilen
+- Temel SQL bilgisine sahip
+- Power BI veya benzeri bir raporlama aracıyla gösterge paneli hazırlayabilen
+- Verideki eğilimleri ekip arkadaşlarına sade bir dille anlatabilen
+- Tercihen perakende veya stok yönetimi alanında deneyimi olan
+- Üniversitelerin ilgili bölümlerinden mezun veya son sınıf öğrencisi
+- Detaylara dikkat eden, takım çalışmasına yatkın`
+};
+const EXAMPLE = {
+  reasoning:"She has two years of real stock-data work: moving records to Excel and a monthly report her uncle uses to order. That is the core of an analyst job at a small scale. She also explains, teaches and leads. Against the ad, SQL and Power BI are missing, Excel is partly shown, and the university requirement is a hard filter she does not meet today.",
+  headline:"You already do a small version of a data analyst's job: you turn stock data into a decision someone acts on every month.",
+  have:[
+    {skill:"Regular reporting for decisions", type:"technical", quote:"her ay hangi ürünün az sattığını gösteren bir tablo yapıyorum", why:"A monthly slow-seller report is real descriptive analysis."},
+    {skill:"Making data useful to a non-expert", type:"soft", quote:"Dayım bu tabloya bakıp sipariş veriyor", why:"Your report changes what gets ordered."},
+    {skill:"Retail and stock experience", type:"experience", quote:"2 yıldır dayımın hırdavat dükkânında çalışıyorum", why:"Domain knowledge many junior applicants lack."},
+    {skill:"Moving records into spreadsheets", type:"technical", quote:"stok defterde tutuluyordu, ben Excel'e geçirdim", why:"You digitised a paper process on your own."},
+    {skill:"Calm problem-solving with people", type:"soft", quote:"onlarla konuşup sorunu çözmeye çalışıyorum", why:"Handling upset customers is stakeholder management."},
+    {skill:"Teaching and explaining", type:"soft", quote:"Kardeşime haftada 3 gün matematik dersi veriyorum", why:"Explaining numbers simply is a core analyst skill."},
+    {skill:"Team leadership and planning", type:"soft", quote:"e-spor takımımızın kaptanıydım, antrenman programını ben ayarlıyordum", why:"You planned and coordinated a team."}
+  ],
+  needs:[
+    {need:"Basic SQL", type:"technical", source:"ad", ad_quote:"Temel SQL bilgisine sahip", status:"missing", story_quote:"", next:"Learn SELECT, WHERE, GROUP BY and JOIN with a free online course, then query your own stock data."},
+    {need:"Excel pivot tables and formulas", type:"tool", source:"ad", ad_quote:"Excel'de pivot tablo ve formüllerle rahat çalışabilen", status:"partial", story_quote:"ben Excel'e geçirdim", next:"Rebuild your monthly table with a pivot table and SUMIFS; keep it as a portfolio file."},
+    {need:"A dashboard in Power BI or a similar tool", type:"tool", source:"ad", ad_quote:"Power BI veya benzeri bir raporlama aracıyla gösterge paneli hazırlayabilen", status:"missing", story_quote:"", next:"Build one dashboard from the shop's sales data: top sellers, slow sellers, monthly trend."},
+    {need:"Explaining trends in plain language", type:"soft", source:"ad", ad_quote:"Verideki eğilimleri ekip arkadaşlarına sade bir dille anlatabilen", status:"have", story_quote:"Dayım bu tabloya bakıp sipariş veriyor", next:"Prepare a 2-minute story of one ordering decision your table changed."},
+    {need:"Attention to detail and teamwork", type:"soft", source:"ad", ad_quote:"Detaylara dikkat eden, takım çalışmasına yatkın", status:"partial", story_quote:"antrenman programını ben ayarlıyordum", next:"Find one example where you caught a mistake in the stock numbers."},
+    {need:"University degree in a related field", type:"knowledge", source:"ad", ad_quote:"Üniversitelerin ilgili bölümlerinden mezun veya son sınıf öğrencisi", status:"missing", story_quote:"", next:"A hard filter for this ad. Start a distance-learning degree in parallel, or target skills-first ads and ask whether a portfolio can stand in."},
+    {need:"Basic statistics (averages, spread, trends)", type:"knowledge", source:"general", ad_quote:"", status:"missing", story_quote:"", next:"Learn descriptive statistics basics and apply them to your monthly sales."},
+    {need:"Retail or stock-management experience", type:"experience", source:"ad", ad_quote:"Tercihen perakende veya stok yönetimi alanında deneyimi olan", status:"have", story_quote:"2 yıldır dayımın hırdavat dükkânında çalışıyorum", next:"Put this first on your CV; the ad says it prefers it."},
+    {need:"A small public portfolio", type:"experience", source:"general", ad_quote:"", status:"missing", story_quote:"", next:"Publish two short projects (stock analysis, dashboard) with a paragraph each on what you found."}
+  ],
+  roadmap:[
+    {when:"Next 2 weeks", step:"Turn your stock table into a portfolio piece", why:"Pivot tables, a clean layout and one paragraph on what it showed and what was ordered."},
+    {when:"1–3 months", step:"Learn basic SQL and build one dashboard", why:"These are the two missing tools in the ad; use the same shop data."},
+    {when:"3–6 months", step:"Apply to skills-first junior roles and internships", why:"Lead with your portfolio and retail experience."}
+  ],
+  cv:[
+    {text:"Moved a hardware store's paper stock records to Excel and built a monthly slow-seller report used for ordering decisions.", quote:"her ay hangi ürünün az sattığını gösteren bir tablo yapıyorum"},
+    {text:"Handled customer complaints at the counter for 2 years.", quote:"onlarla konuşup sorunu çözmeye çalışıyorum"},
+    {text:"Tutored a younger sibling in maths 3 days a week; grades rose from 45 to 70.", quote:"notları 45'ten 70'e çıktı"},
+    {text:"Captained the school e-sports team and planned its training schedule.", quote:"antrenman programını ben ayarlıyordum"}
+  ],
+  star:{situation:"My uncle's hardware store kept its stock in a paper notebook.", task:"He needed to know which products were selling slowly before ordering.", action:"I moved the stock into Excel and started a monthly table of slow-selling products.", result:"My uncle now looks at the table every month when he places orders.",
+    quotes:["stok defterde tutuluyordu","her ay hangi ürünün az sattığını gösteren bir tablo yapıyorum","Dayım bu tabloya bakıp sipariş veriyor"]},
+  questions:["Did your table change anything you can measure, such as fewer unsold items?","Which Excel functions do you use in that file?","Have you ever caught a mistake in the stock numbers?"]
+};
+
+/* ===== Prompt (the server uses the same function) ===== */
+const TYPES = ["technical","tool","soft","knowledge","experience"];
+function buildPrompt(story, field, ad, lang){
+return `You are a career guide for young people with little or no formal work experience. Many of them believe they "have nothing to put on a CV". Your job is to show them, honestly, what they already have, what their target field needs, and the next concrete steps.
+
+Write all explanations in ${lang}. Keep sentences short and simple: the reader may be 17-24 and reading on a phone. Quote fields stay in the original language, copied exactly.
+
+FIRST THINK STEP BY STEP in "reasoning" (3-5 sentences): what has this person actually done, which of those are real skills employers value, what the target field${ad?" and the ad":""} require${ad?"":"s"}, and where the biggest gap is.
+
+RULES — honesty and evidence:
+- Every skill in "have" must have "quote": 3-15 words copied VERBATIM from the STORY (do not fix spelling or translate). If you cannot quote it, do not list it. Order "have" from strongest to weakest for the target field.
+- Never invent experience, numbers, tools or achievements. CV lines and the STAR story may only use facts from the story. Any number you write must appear in the story.
+- ${ad?`Requirements with "source":"ad" must have "ad_quote": 3-15 words copied VERBATIM from the AD. You may add at most 3 extra requirements the field usually needs, with "source":"general" and an empty "ad_quote".`:`There is no ad, so every requirement has "source":"general" and an empty "ad_quote". List 6-9 requirements a junior role in this field typically needs, covering technical skills, tools/software and soft skills.`}
+- Requirement "status": "have" or "partial" only with a "story_quote" copied VERBATIM from the story; otherwise "missing".
+- Be honest about hard filters (for example a required degree), but always give a realistic route around or through them.
+- Next steps must be concrete and free or cheap. Name a type of resource (e.g. "a free online SQL course") rather than a specific website, unless it is a widely known tool.
+- Do not make assumptions based on gender, age, origin, disability or family background.
+- Requirement "type" is one of: ${TYPES.join(", ")}.
+
+EXAMPLE of one skill (format only):
+Story: "...yazın kafede çalıştım, yoğun saatlerde siparişleri ben dağıtıyordum..."
+{"skill":"Prioritising under time pressure","type":"soft","quote":"yoğun saatlerde siparişleri ben dağıtıyordum","why":"You decided who got what first when it was busy."}
+
+OUTPUT: only this JSON.
+{"reasoning": string, "headline": string (max 25 words, encouraging and specific), "have": [{"skill","type","quote","why"}], "needs": [{"need","type","source","ad_quote","status","story_quote","next"}], "roadmap": [{"when","step","why"}] (exactly 3: next 2 weeks, 1-3 months, 3-6 months), "cv": [{"text","quote"}] (3-5 lines, each with a verbatim story quote), "star": {"situation","task","action","result","quotes":[verbatim story quotes]}, "questions": [2-3 questions that would make the profile stronger]}
+
+TARGET FIELD: ${field||"not given — suggest the 2 most fitting fields in the headline and use the first"}
+
+STORY:
+<<<
+${story}
+>>>
+${ad?`\nAD:\n<<<\n${ad}\n>>>`:""}`;
+}
+
+/* ===== Checks in code (independent of the model) ===== */
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+function findRange(src, q){
+  if(!q || !src) return null;
+  const clean = String(q).replace(/[“”"«»]/g,"").trim().replace(/[.,;:]+$/,"");
+  if(clean.split(/\s+/).length < 2) return null;
+  const m = new RegExp(clean.split(/\s+/).map(reEsc).join("\\s+"), "i").exec(src);
+  return m ? [m.index, m.index + m[0].length] : null;
+}
+const numTokens = s => (String(s).match(/\d+(?:[.,]\d+)*/g) || []);
+const missingNums = (text, src) => { const set = new Set(numTokens(src)); return [...new Set(numTokens(text).filter(x=>!set.has(x)))]; };
+
+function sane(r){
+  const A = v => Array.isArray(v)?v:[], S = v => String(v ?? "");
+  const TY = v => TYPES.includes(S(v).toLowerCase()) ? S(v).toLowerCase() : "knowledge";
+  return { reasoning:S(r.reasoning), headline:S(r.headline),
+    have:A(r.have).map(h=>({skill:S(h?.skill), type:TY(h?.type), quote:S(h?.quote), why:S(h?.why)})),
+    needs:A(r.needs).map(n=>({need:S(n?.need), type:TY(n?.type), source:S(n?.source)==="ad"?"ad":"general", ad_quote:S(n?.ad_quote), status:["have","partial","missing"].includes(n?.status)?n.status:"missing", story_quote:S(n?.story_quote), next:S(n?.next)})),
+    roadmap:A(r.roadmap).slice(0,3).map(s=>({when:S(s?.when), step:S(s?.step), why:S(s?.why)})),
+    cv:A(r.cv).map(c=>({text:S(c?.text), quote:S(c?.quote)})),
+    star:{situation:S(r.star?.situation), task:S(r.star?.task), action:S(r.star?.action), result:S(r.star?.result), quotes:A(r.star?.quotes).map(S)},
+    questions:A(r.questions).map(S) };
+}
+
+/* ===== UI ===== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let cur = null, sample = null, ctl = null, mode = "none";
+
+function applyLang(){
+  document.documentElement.lang = L;
+  document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+  document.querySelectorAll(".langs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l===L));
+  $("field").placeholder = t("fieldPh");
+  $("starters").innerHTML = t("starters").map(s=>`<button type="button" class="chip">${esc(s)}</button>`).join("");
+  $("fields").innerHTML = t("fields").map((s,i)=>`<button type="button" class="chip" data-i="${i}">${esc(s)}</button>`).join("");
+  count(); if(cur) renderResult();
+}
+document.querySelector(".langs").onclick = e => { const b = e.target.closest("button[data-l]"); if(!b) return; L = b.dataset.l; try{ localStorage.setItem("sc-lang", L); }catch{} applyLang(); };
+$("starters").onclick = e => { const b = e.target.closest(".chip"); if(!b) return; const ta = $("story");
+  ta.value = (ta.value.trim() ? ta.value.trimEnd() + "\n" : "") + b.textContent.replace(/…$/,"") + " "; ta.focus(); count(); };
+$("fields").onclick = e => { const b = e.target.closest(".chip"); if(!b) return; const last = +b.dataset.i === t("fields").length-1; $("field").value = last ? "" : b.textContent; if(last) $("field").placeholder = "—"; };
+function count(){ $("count").textContent = t("chars")($("story").value.length); }
+$("story").oninput = count;
+function status(m, err){ const s=$("status"); s.innerHTML = m||""; s.classList.toggle("err", !!err); }
+
+$("loadSample").onclick = () => { $("story").value = SAMPLE.story; $("field").value = SAMPLE.field; $("ad").value = SAMPLE.ad; $("ad").closest("details").open = true; count();
+  cur = {r:EXAMPLE, story:SAMPLE.story, ad:SAMPLE.ad, field:SAMPLE.field, example:true}; showResult(); };
+
+function showResult(){ $("form").hidden = true; $("result").hidden = false; renderResult(); window.scrollTo({top:0}); }
+function showForm(){ $("result").hidden = true; $("form").hidden = false; }
+
+function renderResult(){
+  const {r, story, ad, field, example} = cur;
+  const marks = [];
+  const have = r.have.map(h => { const x = findRange(story, h.quote); if(x) marks.push(x); return {...h, ok:!!x}; });
+  const okN = have.filter(h=>h.ok).length;
+  const needs = r.needs.map(n => {
+    const adOK = n.source==="ad" ? !!findRange(ad, n.ad_quote) : null;
+    const stOK = n.status==="missing" ? null : !!findRange(story, n.story_quote);
+    return {...n, adOK, stOK, status: (n.status!=="missing" && !stOK) ? "unverified" : n.status};
+  });
+  const order = {missing:0, unverified:1, partial:2, have:3};
+  needs.sort((a,b)=> TYPES.indexOf(a.type)-TYPES.indexOf(b.type) || order[a.status]-order[b.status]);
+  const cv = r.cv.map(c => ({...c, ok: !!findRange(story, c.quote), miss: missingNums(c.text, story)}));
+  const starMiss = missingNums([r.star.situation, r.star.task, r.star.action, r.star.result].join(" "), story);
+  const anyGeneral = needs.some(n=>n.source!=="ad");
+  const storyHTML = (() => { let h="", p=0; marks.sort((a,b)=>a[0]-b[0]).forEach(([s,e])=>{ if(s<p) return; h+=esc(story.slice(p,s))+`<mark>${esc(story.slice(s,e))}</mark>`; p=e; }); return h+esc(story.slice(p)); })();
+  const ico = s => ({have:"✓",partial:"◐",missing:"○",unverified:"!"}[s]);
+  const top = have.slice(0,3), rest = have.slice(3);
+  const skillCard = h => `<div class="top ${h.ok?"":"bad"}"><b>${esc(h.skill)}</b><q>${esc(h.quote)}</q>${h.ok?"":`<span class="warnline">${t("notSaid")}</span>`}</div>`;
+
+  $("result").innerHTML = `<div class="card">
+    <button class="link" id="back" type="button">${t("edit")}</button>
+    ${example?`<p class="help">${t("example2")}</p>`:""}
+    <p class="lead">${esc(r.headline)}</p>
+    <span class="trust ${okN===have.length?"":"warn"}">${okN===have.length?t("trustOk")(okN):t("trustWarn")(okN,have.length)}</span>
+  </div>
+
+  <div class="card">
+    <h3>${t("top3")}</h3><p class="help">${t("yourWords")}</p>
+    <div class="tops">${top.map(skillCard).join("")}</div>
+    ${rest.length?`<details class="fold"><summary>${t("allSkills")} (${have.length})</summary><div><div class="tops">${rest.map(skillCard).join("")}</div></div></details>`:""}
+    <details class="fold"><summary>${t("storyT")}</summary><div><div class="storyview" lang="tr">${storyHTML}</div></div></details>
+  </div>
+
+  <div class="card">
+    <h3>${esc(t("needsFor")(field || "—"))}</h3>
+    <p class="help">${ad?t("needsAd")+" ":""}${anyGeneral?t("needsGeneral"):""}</p>
+    <div class="legend">${["have","partial","missing"].map(s=>`<span><span class="ico ${s}">${ico(s)}</span>${t("lg")[s]}</span>`).join("")}</div>
+    <div class="needs">${needs.map(n=>`<details class="need"><summary><span class="ico ${n.status}" aria-label="${t("lg")[n.status]}">${ico(n.status)}</span><span>${esc(n.need)}</span><span class="tg">${t("types")[n.type]}</span></summary>
+      <div class="more"><span class="next">${t("next")} ${esc(n.next)}</span>
+        <span class="src">${n.source==="ad"?(n.adOK?`<span class="chk ok">${t("inAd")}</span>`:`<span class="chk bad">${t("notInAd")}</span>`)+`<q>${esc(n.ad_quote)}</q>`:`<span class="chk gen">${t("general")}</span>`}</span>
+        ${n.status!=="missing"?`<span class="src">${n.stOK?`<span class="chk ok">${t("youSaid")}</span><q>${esc(n.story_quote)}</q>`:`<span class="chk bad">${t("notSaid")}</span>`}</span>`:""}
+      </div></details>`).join("")}</div>
+  </div>
+
+  <div class="card">
+    ${r.roadmap[0]?`<div class="now"><span class="when">${t("startNow")} · ${t("whenLbl")[0]}</span><b>${esc(r.roadmap[0].step)}</b><span class="help">${esc(r.roadmap[0].why)}</span></div>`:""}
+    ${r.roadmap.length>1?`<div class="later"><b>${t("later")}</b>${r.roadmap.slice(1).map((s,i)=>`<span><b style="color:var(--ink)">${t("whenLbl")[i+1]}:</b> ${esc(s.step)}. ${esc(s.why)}</span>`).join("")}</div>`:""}
+  </div>
+
+  <div class="card">
+    <details class="fold" style="border:0;padding:0"><summary>${t("cvT")}</summary><div>
+      <ul class="cv">${cv.map(c=>`<li class="${c.ok&&!c.miss.length?"":"bad"}">${esc(c.text)}${!c.ok?`<div class="warnline">${t("notSaid")}</div>`:""}${c.miss.length?`<div class="warnline">${esc(t("numWarn")(c.miss.join(", ")))}</div>`:""}</li>`).join("")}</ul>
+      <div class="row"><button class="btn" type="button" id="copyCV" style="padding:9px 16px;font-size:.92rem">${t("copy")}</button><span class="status" id="copyMsg"></span></div>
+    </div></details>
+    <details class="fold"><summary>${t("starT")}</summary><div>
+      <dl class="star"><dt>Situation</dt><dd>${esc(r.star.situation)}</dd><dt>Task</dt><dd>${esc(r.star.task)}</dd><dt>Action</dt><dd>${esc(r.star.action)}</dd><dt>Result</dt><dd>${esc(r.star.result)}</dd></dl>
+      ${starMiss.length?`<p class="warnline">${esc(t("numWarn")(starMiss.join(", ")))}</p>`:""}
+    </div></details>
+    ${r.questions.length?`<details class="fold"><summary>${t("stronger")}</summary><div><p class="help">${t("strongerHelp")}</p><ol class="qs">${r.questions.map(q=>`<li>${esc(q)}</li>`).join("")}</ol></div></details>`:""}
+    <details class="fold"><summary>${t("how")}</summary><div><p class="help">${esc(r.reasoning)}</p></div></details>
+  </div>
+  <p class="foot">${t("foot")}</p>`;
+
+  $("back").onclick = showForm;
+  $("copyCV").onclick = async () => { try{ await navigator.clipboard.writeText(cv.filter(c=>c.ok&&!c.miss.length).map(c=>"• "+c.text).join("\n")); $("copyMsg").textContent = t("copied"); }catch{ $("copyMsg").textContent = t("copyFail"); } };
+}
+
+/* ===== Model call: claude.ai viewer → server /api/analyze → local API key ===== */
+function parseJSONLoose(s){
+  try{ return JSON.parse(s); }catch{}
+  const f = s.match(/```(?:json)?\s*([\s\S]*?)```/); if(f){ try{ return JSON.parse(f[1]); }catch{} }
+  const a = s.indexOf("{"), b = s.lastIndexOf("}"); if(a>=0&&b>a){ try{ return JSON.parse(s.slice(a,b+1)); }catch{} }
+  throw {code:"invalid_json"};
+}
+async function analyse(story, field, ad, lang, signal){
+  if(sample) return sample.json(buildPrompt(story, field, ad, lang), {signal});
+  const key = $("apikey").value.trim();
+  if(key){
+    const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", signal,
+      headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body: JSON.stringify({ model:$("model").value.trim(), max_tokens:5000, messages:[{role:"user", content:buildPrompt(story, field, ad, lang)}] }) });
+    if(!res.ok) throw {code:"upstream_error", message: await res.text()};
+    const j = await res.json(); return parseJSONLoose(j.content.map(c=>c.text||"").join(""));
+  }
+  if(mode === "server"){
+    const res = await fetch("api/analyze", { method:"POST", signal, headers:{"content-type":"application/json"}, body: JSON.stringify({story, field, ad, lang}) });
+    const j = await res.json().catch(()=>({error:"bad_response"}));
+    if(!res.ok) throw {code: j.error || "upstream_error", message: j.message};
+    return j;
+  }
+  throw {code:"no_model"};
+}
+const ERRS = { en:{ no_model:"noModel", rate_limited:"Too many requests. Wait a minute and try again.", too_long:"Your text is too long. Shorten it a little.", invalid_json:"The answer came back in the wrong format. Try again.", not_granted:"This page was not allowed to use Claude.", cancelled:"Stopped." },
+               tr:{ no_model:"noModel", rate_limited:"Çok fazla istek. Bir dakika bekleyip tekrar dene.", too_long:"Metin çok uzun. Biraz kısalt.", invalid_json:"Cevap yanlış biçimde geldi. Tekrar dene.", not_granted:"Bu sayfanın Claude kullanmasına izin verilmedi.", cancelled:"Durduruldu." } };
+function errMsg(e){ const m = ERRS[L][e?.code]; if(m === "noModel") return t("noModel"); return m || (L==="tr" ? "Bir sorun oldu. Tekrar dene." : "Something went wrong. Try again."); }
+
+$("stop").onclick = () => ctl?.abort();
+$("form").onsubmit = async e => { e.preventDefault();
+  const story = $("story").value.trim(), field = $("field").value.trim(), ad = $("ad").value.trim();
+  if(story.length < 60){ status(t("short"), true); $("story").focus(); return; }
+  ctl = new AbortController(); $("run").disabled = true; $("stop").hidden = false;
+  status(`<span class="thinking"><span class="dot"></span>${esc(t("thinking"))}</span>`);
+  try{
+    const r = sane(await analyse(story, field, ad, L==="tr"?"Turkish":"English", ctl.signal));
+    cur = {r, story, ad, field, example:false}; status(""); showResult();
+  }catch(err){ status(esc(errMsg(err)), err?.code!=="cancelled"); if(err?.code==="no_model") $("keyopt").hidden = false; }
+  finally{ $("run").disabled = false; $("stop").hidden = true; }
+};
+
+/* ===== Start ===== */
+applyLang();
+(async () => {
+  try{ sample = window.claude ? await window.claude.use("sample") : null; }catch{ sample = null; }
+  if(sample){ mode = "viewer"; return; }
+  if(location.protocol.startsWith("http")){
+    try{ const r = await fetch("api/analyze", {method:"GET"}); if(r.ok && (await r.json()).ok) { mode = "server"; return; } }catch{}
+  }
+  $("keyopt").hidden = false;
+})();
+</script>
+
+</body></html>
